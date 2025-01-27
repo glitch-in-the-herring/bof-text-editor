@@ -1,0 +1,53 @@
+%import common.INT -> INT
+%import common.DIGIT -> DIGIT
+%import common.HEXDIGIT -> HEXDIGIT
+%import common.CNAME -> CNAME
+%import common.NEWLINE -> NEWLINE
+%import common.LETTER -> LETTER
+
+start: variables? content
+variables: variable*
+variable: "%" CNAME  "=" variable_value NEWLINE?
+variable_value: INT -> number | HEXINT -> hex_number
+HEXINT: "0x" HEXDIGIT*
+
+safe_chars: (LETTER | DIGIT) -> safe_alphanum | SPACE -> space | PUNCT -> punct
+SPACE: " "
+PUNCT: "(" | ")" | "," | "-" | "." | "/" | "?" | "!" | "+" | "'" | ":" | "\"" | "%"
+content: (content_string NEWLINE?)*
+content_string: "^" string "$"
+string: string_text*
+string_text: inline_string*
+?inline_string.-1: inline_segment 
+    | inline_segment NEWLINE  -> end_newline
+    | inline_segment "|" NEWLINE -> end_newbox
+    | inline_segment "\\" -> end_null
+?inline_segment: inline_formatting
+?inline_formatting: inline_formatting inline_color inline_formatting_child 
+    | inline_formatting inline_effect inline_formatting_child 
+    | inline_formatting_child
+inline_color: color_start inline_segment color_end
+color_start: "[color=" CNAME "]"
+color_end: "[/color]"
+inline_effect: effect_start inline_segment effect_end
+effect_start: "[effect]"
+effect_end: "[/effect=" CNAME "]"
+?inline_formatting_child: inline_formatting_child "#" inline_formatting_grandchild -> pause
+    | inline_formatting_child "&" inline_formatting_grandchild -> pointer // should replace this since & is a part of the game's fonts
+    | inline_formatting_child macro_block inline_formatting_grandchild -> inline_macro
+    | inline_formatting_grandchild
+macro_block: "[" macro_name "]"
+macro_name: textbox_macro -> textbox_start
+    | party_macro  -> party_start
+    | options_macro -> options_start
+    | placeholder_macro -> placeholder_start
+    | symbol_macro -> symbol_start
+    | duration_macro -> duration_start
+textbox_macro: "POS " CNAME CNAME
+party_macro: "PARTY " CNAME
+options_macro: "OPTIONS " CNAME
+placeholder_macro: "PLACEHOLDER " variable_value
+symbol_macro: "SYMBOL " variable_value
+duration_macro: "DUR " variable_value
+?inline_formatting_grandchild: safe_text
+safe_text: safe_chars*

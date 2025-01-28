@@ -119,6 +119,7 @@ class SyntaxTransformer(Transformer):
             ret.extend(i)
         return ret
 
+
     def string(self, s):
         return s[0]
 
@@ -185,6 +186,14 @@ class SyntaxTransformer(Transformer):
         return [0x07] + m
     
 
+    def symbol_start(self, m):
+        return m
+
+    
+    def duration_start(self, m):
+        return [0x16] + m
+
+
     def party_macro(self, m):
         member = str(m[0]).upper()
         return self._party_map[member]
@@ -194,9 +203,17 @@ class SyntaxTransformer(Transformer):
         return m[0]
 
 
+    def symbol_macro(self, m):
+        return m[0]
+
+
+    def duration_macro(self, m):
+        return m[0]
+    
+
     start = list
     variables = dict
     safe_text = list
 
 transform = SyntaxTransformer().transform(tree)
-print(bytes(transform[1]))
+print(transform[1])

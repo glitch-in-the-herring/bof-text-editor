@@ -172,4 +172,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Output and input files
 *.txt
+*.bin

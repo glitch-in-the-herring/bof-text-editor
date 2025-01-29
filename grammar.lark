@@ -21,7 +21,7 @@ string_text: (inline_string|multiline_formatting)*
 ?inline_string.-1: inline_segment 
     | inline_segment NEWLINE  -> end_newline
     | inline_segment "|" NEWLINE -> end_newbox
-    | inline_segment "\\" -> end_null
+    | inline_segment "\\" NEWLINE -> end_null
 ?inline_segment: inline_formatting
 ?inline_formatting: inline_formatting inline_color inline_formatting_child 
     | inline_formatting inline_effect inline_formatting_child 
@@ -30,28 +30,28 @@ inline_color: color_start inline_segment color_end
 color_start: /\[\s*color\s*=\s*/ CNAME /\s*\]\s*/
 color_end: /\[\s*\/color\s*\]/
 inline_effect: effect_start inline_segment effect_end
-effect_start:  /\[\s*effect\s*\]/
-effect_end:  /\[\s*\/effect\s*=\s*/ CNAME /\s*\]\s*/
+effect_start:  /\[\s*EFFECT\s*\]/i
+effect_end:  /\[\s*\/EFFECT\s*=\s*/i CNAME /\s*\]\s*/
 ?inline_formatting_child: inline_formatting_child "#" inline_formatting_grandchild -> pause
-    | inline_formatting_child "&" inline_formatting_grandchild -> pointer // should replace this since & is a part of the game's fonts
+    | inline_formatting_child "@" inline_formatting_grandchild -> pointer
     | inline_formatting_child macro_block inline_formatting_grandchild -> inline_macro
     | inline_formatting_grandchild
-macro_block: "[" macro_name "]"
+macro_block: /\[\s*/ macro_name /\s*\]/
 macro_name: textbox_macro -> textbox_start
     | party_macro  -> party_start
-    | options_macro -> options_start
+    | selection_macro -> selection_start
     | placeholder_macro -> placeholder_start
     | symbol_macro -> symbol_start
     | duration_macro -> duration_start
-textbox_macro: "POS " CNAME CNAME
-party_macro: "PARTY " CNAME
-options_macro: "OPTIONS " CNAME
-placeholder_macro: "PLACEHOLDER " variable_value
-symbol_macro: "SYMBOL " variable_value
-duration_macro: "DUR " variable_value
+textbox_macro: /POS\s+/i CNAME /\s+/ CNAME
+party_macro: /PARTY\s+/i CNAME
+selection_macro: /SELECTION\s+/i variable_value /\s+/ CNAME /\s+/ variable_value
+placeholder_macro: /PLACEHOLDER\s+/ variable_value
+symbol_macro: /SYMBOL\s+/  variable_value
+duration_macro: /DUR\s+/ variable_value
 ?inline_formatting_grandchild: safe_text
 safe_text: safe_chars*
 
 multiline_formatting: multiline_color | multiline_effect
-multiline_color: color_start inline_string+ color_end
-multiline_effect: effect_start inline_string+ effect_end
+multiline_color: color_start inline_string* color_end
+multiline_effect: effect_start inline_string* effect_end

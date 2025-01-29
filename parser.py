@@ -7,10 +7,6 @@ with open("grammar.lark", "r") as f:
 with open("test.txt", "r") as f:
     text = f.read()
 
-tree = parser.parse(text)
-
-# print(tree.pretty())
-
 class SyntaxTransformer(Transformer):
     _punct_map = {
         "(": 0x3a,
@@ -22,9 +18,12 @@ class SyntaxTransformer(Transformer):
         "?": 0x5c,
         "!": 0x5d,
         "+": 0x8b,
+        "~": 0x8c,
+        "&": 0x8d,
         "\'": 0x8e,
         ":": 0x8f,
         "\"": 0x90,
+        ";": 0x91,
         "%": 0x93,
     }
 
@@ -77,6 +76,27 @@ class SyntaxTransformer(Transformer):
         "PECO": 0x06,
     }
 
+    _selection_map = {
+        "OVR": 0x00,
+        "NEW": 0x10,
+    }
+
+    _textbox_pos_map = {
+        "BM": 0x00,
+        "MM": 0x01,
+        "TM": 0x02,
+        "TL": 0x03,
+        "TR": 0x04,
+        "BL": 0x05,
+        "BR": 0x06,
+    }
+
+    _textbox_vis_map = {
+        "NV": 0x00,
+        "SV": 0x40,
+        "NI": 0x80,
+    }
+
 
     def concat(self, l):
         ret = []
@@ -97,7 +117,7 @@ class SyntaxTransformer(Transformer):
 
     def variable(self, v):
         name, v, *_ = v
-        return (str(name), v)
+        return (str(name).upper(), v)
 
     def safe_alphanum(self, c):
         c, = c
@@ -118,7 +138,11 @@ class SyntaxTransformer(Transformer):
 
 
     def end_newbox(self, l):
-        return l[0] + [0x20]
+        return l[0] + [0x02]
+
+
+    def end_null(self, l):
+        return l[0] + [0x00]
 
 
     def string_text(self, s):
@@ -130,7 +154,7 @@ class SyntaxTransformer(Transformer):
 
 
     def content_string(self, s):
-        return s[0] + [0x00]
+        return [-1] + s[0] + [0x00]
 
     
     def content(self, c):
@@ -172,12 +196,21 @@ class SyntaxTransformer(Transformer):
         return p0 + [0x0b] + p1
 
 
+    def pointer(self, p):
+        p0, p1 = p
+        return p0 + [-1] + p1
+
+
     def inline_macro(self, m):
         return m[0] + m[1] + m[2]
 
 
     def macro_block(self, m):
-        return m[0]
+        return m[1]
+
+
+    def textbox_start(self, m):
+        return [0x0c] + m
 
 
     def party_start(self, m):
@@ -196,21 +229,37 @@ class SyntaxTransformer(Transformer):
         return [0x16] + m
 
 
+    def selection_start(self, m):
+        m, = m
+        return [0x14] + [m[0]] + [0x0c] + [m[1]]
+
+
+    def textbox_macro(self, m):
+        pos = str(m[1]).upper()
+        vis = str(m[3]).upper()
+        return self._textbox_pos_map[pos] |  self._textbox_vis_map[vis]
+
+    
     def party_macro(self, m):
-        member = str(m[0]).upper()
+        member = str(m[1]).upper()
         return self._party_map[member]
 
 
     def placeholder_macro(self, m):
-        return m[0]
+        return m[1]
 
 
     def symbol_macro(self, m):
-        return m[0]
+        return m[1]
 
 
     def duration_macro(self, m):
-        return m[0]
+        return m[1]
+
+
+    def selection_macro(self, m):
+        selection = str(m[3]).upper()
+        return [m[1], self._selection_map[selection] | m[5]]
 
 
     def multiline_formatting(self, f):
@@ -229,5 +278,48 @@ class SyntaxTransformer(Transformer):
     variables = dict
     safe_text = list
 
+
+class Processor():
+    def __init__(self, padding=True, as_bytes=True):
+        self.padding = padding
+        self.as_bytes = as_bytes
+
+
+    def process(self, transform_output):
+        var, byte_array = transform_output
+        ret_ptr = []
+        ret_str = []
+        
+        self.ptsize = 512
+        if "PTSIZE" in var.keys():
+            self.ptsize = var["PTSIZE"] & 0xffff
+
+        ret_ptr.extend([i for i in int.to_bytes(self.ptsize, length=2, byteorder="little")])
+        
+        pos = 0
+        for i in byte_array:
+            if i >= 0:
+                ret_str.append(i)
+                pos += 1
+            else:
+                ret_ptr.extend([i for i in int.to_bytes(self.ptsize + pos, length=2, byteorder="little")])
+
+        ptr_remainder = -len(ret_ptr) % self.ptsize
+        ret_ptr.extend(
+            [i for i in int.to_bytes(len(ret_str) + self.ptsize, length=2, byteorder="little")] * (ptr_remainder // 2)
+        )
+
+        if self.padding:
+            str_remainder = -(len(ret_str) + self.ptsize) % 2048
+            ret_str.extend([0x5f] * str_remainder)
+
+        if self.as_bytes:
+            return bytes(ret_ptr + ret_str)
+        else:
+            return ret_ptr + ret_str
+
+tree = parser.parse(text)
 transform = SyntaxTransformer().transform(tree)
-print(transform)
+process = Processor().process(transform)
+with open("test.bin", "wb") as f:
+    f.write(process)

@@ -7,18 +7,17 @@
 
 start: variables? content
 variables: variable*
-variable: "%" CNAME  "=" variable_value NEWLINE?
+variable: "%" CNAME  /\s*=\s*/ variable_value NEWLINE?
 variable_value: INT -> number | HEXINT -> hex_number
 HEXINT: "0x" HEXDIGIT*
 
 safe_chars: (LETTER | DIGIT) -> safe_alphanum | SPACE -> space | PUNCT -> punct
 SPACE: " "
 PUNCT: "(" | ")" | "," | "-" | "." | "/" | "?" | "!" | "+" | "'" | ":" | "\"" | "%"
-content: (content_string NEWLINE?)*
-content_string: "^" string "$"
+content: (content_string)*
+content_string: "^" string /\$\s*/
 string: string_text*
-string_text: (inline_string | multiline_formatting)*
-
+string_text: (inline_string|multiline_formatting)*
 ?inline_string.-1: inline_segment 
     | inline_segment NEWLINE  -> end_newline
     | inline_segment "|" NEWLINE -> end_newbox
@@ -28,11 +27,11 @@ string_text: (inline_string | multiline_formatting)*
     | inline_formatting inline_effect inline_formatting_child 
     | inline_formatting_child
 inline_color: color_start inline_segment color_end
-color_start: "[color=" CNAME "]"
-color_end: "[/color]"
+color_start: /\[\s*color\s*=\s*/ CNAME /\s*\]\s*/
+color_end: /\[\s*\/color\s*\]/
 inline_effect: effect_start inline_segment effect_end
-effect_start: "[effect]"
-effect_end: "[/effect=" CNAME "]"
+effect_start:  /\[\s*effect\s*\]/
+effect_end:  /\[\s*\/effect\s*=\s*/ CNAME /\s*\]\s*/
 ?inline_formatting_child: inline_formatting_child "#" inline_formatting_grandchild -> pause
     | inline_formatting_child "&" inline_formatting_grandchild -> pointer // should replace this since & is a part of the game's fonts
     | inline_formatting_child macro_block inline_formatting_grandchild -> inline_macro

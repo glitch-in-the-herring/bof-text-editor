@@ -77,6 +77,14 @@ class SyntaxTransformer(Transformer):
         "PECO": 0x06,
     }
 
+
+    def concat(self, l):
+        ret = []
+        for i in l:
+            ret.extend(i)
+        return ret
+
+
     def hex_number(self, h):
         h, = h
         return int(h[2:], base=16)
@@ -114,10 +122,7 @@ class SyntaxTransformer(Transformer):
 
 
     def string_text(self, s):
-        ret = []
-        for i in s:
-            ret.extend(i)
-        return ret
+        return self.concat(s)
 
 
     def string(self, s):
@@ -129,18 +134,15 @@ class SyntaxTransformer(Transformer):
 
     
     def content(self, c):
-        return c[0]
+        return self.concat(c)
 
 
     def inline_formatting(self, f):
-        ret = []
-        for i in f:
-            ret.extend(i)
-        return ret
+        return self.concat(f)
 
     
     def color_start(self, c):
-        color = str(c[0]).upper()
+        color = str(c[1]).upper()
         return [0x05, self._color_map[color]]
 
 
@@ -161,7 +163,7 @@ class SyntaxTransformer(Transformer):
 
 
     def effect_end(self, e):
-        effect = str(e[0]).upper()
+        effect = str(e[1]).upper()
         return [0x0e, 0x0f, self._effect_map[effect]]
 
     
@@ -214,18 +216,13 @@ class SyntaxTransformer(Transformer):
     def multiline_formatting(self, f):
         return f[0]
     
+
     def multiline_color(self, c):
-        ret = []
-        for i in c[:-1]:
-            ret.extend(i)
-        return ret + [c[-1]]
+        return self.concat(c[:-1]) + [c[-1]]
 
 
     def multiline_effect(self, e):
-        ret = []
-        for i in e[1:]:
-            ret.extend(i)
-        return [e[0]] + ret
+        return [e[0]] + self.concat(e[1:])
 
 
     start = list
@@ -233,4 +230,4 @@ class SyntaxTransformer(Transformer):
     safe_text = list
 
 transform = SyntaxTransformer().transform(tree)
-print(transform[1])
+print(transform)

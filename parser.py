@@ -209,7 +209,24 @@ class SyntaxTransformer(Transformer):
 
     def duration_macro(self, m):
         return m[0]
+
+
+    def multiline_formatting(self, f):
+        return f[0]
     
+    def multiline_color(self, c):
+        ret = []
+        for i in c[:-1]:
+            ret.extend(i)
+        return ret + [c[-1]]
+
+
+    def multiline_effect(self, e):
+        ret = []
+        for i in e[1:]:
+            ret.extend(i)
+        return [e[0]] + ret
+
 
     start = list
     variables = dict

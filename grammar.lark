@@ -17,7 +17,8 @@ PUNCT: "(" | ")" | "," | "-" | "." | "/" | "?" | "!" | "+" | "'" | ":" | "\"" | 
 content: (content_string NEWLINE?)*
 content_string: "^" string "$"
 string: string_text*
-string_text: inline_string*
+string_text: (inline_string | multiline_formatting)*
+
 ?inline_string.-1: inline_segment 
     | inline_segment NEWLINE  -> end_newline
     | inline_segment "|" NEWLINE -> end_newbox
@@ -51,3 +52,7 @@ symbol_macro: "SYMBOL " variable_value
 duration_macro: "DUR " variable_value
 ?inline_formatting_grandchild: safe_text
 safe_text: safe_chars*
+
+multiline_formatting: multiline_color | multiline_effect
+multiline_color: color_start inline_string+ color_end
+multiline_effect: effect_start inline_string+ effect_end

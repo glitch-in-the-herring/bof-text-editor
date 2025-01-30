@@ -2,7 +2,7 @@ import argparse
 
 cli_parser = argparse.ArgumentParser()
 
-cli_parser.add_argument('mode', choices=['extract', 'edit'])
+cli_parser.add_argument('operation', choices=['extract', 'edit'])
 cli_parser.add_argument('filename')
 cli_parser.add_argument(
     '-v', 
@@ -24,12 +24,17 @@ cli_parser.add_argument(
     '--out', 
     default=None,
     help='set the name of the output file')
+cli_parser.add_argument(
+    '-m', 
+    '--mode',
+    choices=['3', '4'],
+    help='set the mode (3 or 4)')
 
 def main():
     args = cli_parser.parse_args()
-    if args.mode.lower() == "edit":
+    if args.operation.lower() == "edit":
         from .editor import editor
-        editor(args.filename, args.verbose, args.new, args.copy)
-    elif args.mode.lower() == "extract":
+        editor(args.filename, args.verbose, args.new, args.mode, args.copy)
+    elif args.operation.lower() == "extract":
         from .extractor import extractor
-        extractor(args.filename, args.verbose, args.out)
+        extractor(args.filename, args.verbose, args.mode, args.out)

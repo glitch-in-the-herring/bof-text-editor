@@ -2,9 +2,9 @@
 Extractor and markup intermediary for editing text sections found in Breath of Fire III and IV.
 
 ## Installing
-1. Download [Python](https://www.python.org/downloads/)
-2. When installing Python, make sure that "Add Python 3.xx" is ticked
-3. Open a command prompt window
+1. ~~Download [Python](https://www.python.org/downloads/)~~
+2. ~~When installing Python, make sure that "Add Python 3.xx" is ticked~~
+3. ~~Open a command prompt window~~
 4. Type `python -m pip install git+https://github.com/glitch-in-the-herring/bof-text-editor`
 
 ## Usage
@@ -29,4 +29,4 @@ bof-text edit FILENAME -n
 ```
 
 ## Syntax
-For information about the syntax of the intermediary markup, see [SYNTAX.MD]()
+For information about the syntax of the intermediary markup, see [SYNTAX.MD](SYNTAX.MD)

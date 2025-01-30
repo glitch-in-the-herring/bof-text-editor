@@ -114,6 +114,7 @@ class SyntaxTransformer(Transformer):
 
     def variable(self, v):
         return (str(v[0]).upper(), v[2])
+        
 
     def int_var(self, v):
         return v[0]
@@ -315,11 +316,13 @@ class Processor():
             [i for i in int.to_bytes(len(ret_str) + self.ptsize, length=2, byteorder="little")] * (ptr_remainder // 2)
         )
 
+        original_len = len(ret_str)
+
         if self.padding:
             str_remainder = -(len(ret_str) + self.ptsize) % 2048
             ret_str.extend([0x5f] * str_remainder)
 
         if self.as_bytes:
-            return bytes(ret_ptr + ret_str), self.target
+            return bytes(ret_ptr + ret_str), self.target, original_len
         else:
-            return ret_ptr + ret_str, self.target
+            return ret_ptr + ret_str, self.target, original_len

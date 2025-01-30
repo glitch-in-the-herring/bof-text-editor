@@ -3,9 +3,8 @@ import time
 from pathlib import Path
 
 import emi #type: ignore
-import parser #type: ignore
 
-def editor(source_filename, verbose, overwrite, copy):
+def editor(source_filename, verbose, overwrite, mode, copy):
     source_path = Path(source_filename)
 
     if not source_path.exists():
@@ -17,10 +16,15 @@ def editor(source_filename, verbose, overwrite, copy):
     if verbose:
         print("Parsing...")
 
+    if mode == "3":
+        from .parser3 import parser, SyntaxTransformer, Processor
+    elif mode =="4":
+        from .parser4 import parser, SyntaxTransformer, Processor
+
     start_t = time.perf_counter()
-    source_tree = parser.parser.parse(source)
-    source_transform = parser.SyntaxTransformer().transform(source_tree)
-    byte_string, target_filename = parser.Processor().process(source_transform)
+    source_tree = parser.parse(source)
+    source_transform = SyntaxTransformer().transform(source_tree)
+    byte_string, target_filename, original_len = Processor().process(source_transform)
     end_t = time.perf_counter()
 
     if verbose:
@@ -57,7 +61,7 @@ def editor(source_filename, verbose, overwrite, copy):
             target_file.write(byte_string)
 
             target_file.seek(text_entry.toc_addr)
-            target_file.write(int.to_bytes(len(byte_string), length=4, byteorder="little"))
+            target_file.write(int.to_bytes(original_len, length=4, byteorder="little"))
             target_file.seek(4, 1)
             target_file.write(byte_string[:4])
 

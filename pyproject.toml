@@ -1,2 +1,7 @@
+[project]
+name = "bof-text"
+version = "1.0.0"
+dynamic = ["version"]
+
 [project.scripts]
 bof-text = "bof_text_editor:main"

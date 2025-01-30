@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import os
 from pathlib import Path
@@ -168,6 +170,8 @@ def main():
         text_section = source_file.read(text_entry.size)
 
     with open(out_path, "w") as out_file:
+        out_file.write(f"%TARGET=\"{source_filename}\"\n")
+
         ptsize = to_int(text_section[:2])
         ptidx0 = 0
         ptidx1 = 1
@@ -201,7 +205,7 @@ def main():
                 elif text_section[idx] == 0x0c:
                     pos = text_section[idx + 1] & 0x0f
                     vis = text_section[idx + 1] & 0xf0
-                    out_file.write(f"[POS {textbox_pos_map[pos]} {textbox_vis_map[vis]}]")
+                    out_file.write(f"[TB {textbox_pos_map[pos]} {textbox_vis_map[vis]}]")
                     idx += 2
                 elif text_section[idx] == 0x0d:
                     out_file.write("[effect]")

@@ -175,6 +175,8 @@ cython_debug/
 
 # Output and input files
 *.txt
+!requirements.txt
 *.bin
 *.emi
 *_copy
+*.code-workspace

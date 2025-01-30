@@ -45,10 +45,10 @@ macro_name: textbox_macro -> textbox_start
     | placeholder_macro -> placeholder_start
     | symbol_macro -> symbol_start
     | duration_macro -> duration_start
-textbox_macro: /POS\s+/i CNAME /\s+/ CNAME
+textbox_macro: /TB\s+/i CNAME /\s+/ CNAME
 party_macro: /PARTY\s+/i CNAME
 selection_macro: /SELECTION\s+/i variable_int_value /\s+/ CNAME /\s+/ variable_int_value
-placeholder_macro: /PLACEHOLDER\s+/ variable_int_value
+placeholder_macro: /PLACEHOLDER\s+/i variable_int_value
 symbol_macro: /SYMBOL\s+/i  variable_int_value
 duration_macro: /DUR\s+/i variable_int_value
 ?inline_formatting_grandchild: safe_text

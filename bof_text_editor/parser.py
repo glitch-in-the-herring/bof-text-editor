@@ -1,7 +1,7 @@
 from lark import Lark
 from lark import Transformer
 
-with open("grammar.lark", "r") as f:
+with open("grammars/bof3_grammar.lark", "r") as f:
     parser = Lark(f)
 
 class SyntaxTransformer(Transformer):

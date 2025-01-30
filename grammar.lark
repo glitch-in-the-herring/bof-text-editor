@@ -4,11 +4,13 @@
 %import common.CNAME -> CNAME
 %import common.NEWLINE -> NEWLINE
 %import common.LETTER -> LETTER
+%import common.ESCAPED_STRING -> ESCAPED_STRING 
 
 start: variables? content
 variables: variable*
 variable: "%" CNAME  /\s*=\s*/ variable_value NEWLINE?
-variable_value: INT -> number | HEXINT -> hex_number
+variable_value: variable_int_value -> int_var | ESCAPED_STRING -> string_var
+variable_int_value: INT -> number | HEXINT -> hex_number
 HEXINT: "0x" HEXDIGIT*
 
 safe_chars: (LETTER | DIGIT) -> safe_alphanum | SPACE -> space | PUNCT -> punct
@@ -27,8 +29,8 @@ string_text: (inline_string|multiline_formatting)*
     | inline_formatting inline_effect inline_formatting_child 
     | inline_formatting_child
 inline_color: color_start inline_segment color_end
-color_start: /\[\s*color\s*=\s*/ CNAME /\s*\]\s*/
-color_end: /\[\s*\/color\s*\]/
+color_start: /\[\s*COLOR\s*=\s*/i CNAME /\s*\]\s*/
+color_end: /\[\s*\/COLOR\s*\]/i
 inline_effect: effect_start inline_segment effect_end
 effect_start:  /\[\s*EFFECT\s*\]/i
 effect_end:  /\[\s*\/EFFECT\s*=\s*/i CNAME /\s*\]\s*/
@@ -45,10 +47,10 @@ macro_name: textbox_macro -> textbox_start
     | duration_macro -> duration_start
 textbox_macro: /POS\s+/i CNAME /\s+/ CNAME
 party_macro: /PARTY\s+/i CNAME
-selection_macro: /SELECTION\s+/i variable_value /\s+/ CNAME /\s+/ variable_value
-placeholder_macro: /PLACEHOLDER\s+/ variable_value
-symbol_macro: /SYMBOL\s+/  variable_value
-duration_macro: /DUR\s+/ variable_value
+selection_macro: /SELECTION\s+/i variable_int_value /\s+/ CNAME /\s+/ variable_int_value
+placeholder_macro: /PLACEHOLDER\s+/ variable_int_value
+symbol_macro: /SYMBOL\s+/i  variable_int_value
+duration_macro: /DUR\s+/i variable_int_value
 ?inline_formatting_grandchild: safe_text
 safe_text: safe_chars*
 

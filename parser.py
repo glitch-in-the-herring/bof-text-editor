@@ -4,9 +4,6 @@ from lark import Transformer
 with open("grammar.lark", "r") as f:
     parser = Lark(f)
 
-with open("test.txt", "r") as f:
-    text = f.read()
-
 class SyntaxTransformer(Transformer):
     _punct_map = {
         "(": 0x3a,
@@ -116,8 +113,15 @@ class SyntaxTransformer(Transformer):
 
 
     def variable(self, v):
-        name, v, *_ = v
-        return (str(name).upper(), v)
+        return (str(v[0]).upper(), v[2])
+
+    def int_var(self, v):
+        return v[0]
+    
+
+    def string_var(self, v):
+        return str(v[0])[1:-1]
+
 
     def safe_alphanum(self, c):
         c, = c
@@ -294,7 +298,9 @@ class Processor():
         if "PTSIZE" in var.keys():
             self.ptsize = var["PTSIZE"] & 0xffff
 
-        ret_ptr.extend([i for i in int.to_bytes(self.ptsize, length=2, byteorder="little")])
+        self.target = "output.bin"
+        if "TARGET" in var.keys():
+            self.target = var["TARGET"]
         
         pos = 0
         for i in byte_array:
@@ -314,12 +320,6 @@ class Processor():
             ret_str.extend([0x5f] * str_remainder)
 
         if self.as_bytes:
-            return bytes(ret_ptr + ret_str)
+            return bytes(ret_ptr + ret_str), self.target
         else:
-            return ret_ptr + ret_str
-
-tree = parser.parse(text)
-transform = SyntaxTransformer().transform(tree)
-process = Processor().process(transform)
-with open("test.bin", "wb") as f:
-    f.write(process)
+            return ret_ptr + ret_str, self.target

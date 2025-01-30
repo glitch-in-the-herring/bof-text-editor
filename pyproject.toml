@@ -1,6 +1,9 @@
 [project]
 name = "bof-text"
+description = "Command line tool for editing Breath of Fire III and IV text sections"
 version = "1.0.0"
+readme = "README.md"
+license = {file = "LICENSE.md"}
 dynamic = ["version"]
 
 [project.scripts]

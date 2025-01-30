@@ -1,36 +1,11 @@
-import argparse
 import shutil
 import time
 from pathlib import Path
 
-import emi
-import parser
+import emi #type: ignore
+import parser #type: ignore
 
-cli_parser = argparse.ArgumentParser()
-
-cli_parser.add_argument('filename')
-cli_parser.add_argument(
-    '-v', 
-    '--verbose', 
-    action='store_true',
-    help='toggle verbose mode')
-cli_parser.add_argument(
-    '-n', 
-    '--new', 
-    action='store_true',
-    help='overwrite or create a file instead of patching an .EMI file')
-cli_parser.add_argument(
-    '-c', 
-    '--copy', 
-    action='store_true',
-    help='copy the file before applying the patch')
-
-def main():
-    args = cli_parser.parse_args()
-    verbose = args.verbose
-    overwrite = args.new
-    copy = args.copy
-    source_filename = args.filename
+def editor(source_filename, verbose, overwrite, copy):
     source_path = Path(source_filename)
 
     if not source_path.exists():
@@ -87,8 +62,3 @@ def main():
             target_file.write(byte_string[:4])
 
         print(f"{target_filename} successfully modified")
-            
-
-
-if __name__ == "__main__":
-    main()

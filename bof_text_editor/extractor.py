@@ -1,25 +1,9 @@
 #!/usr/bin/env python3
 
-import argparse
 import os
 from pathlib import Path
 
-import emi
-
-cli_parser = argparse.ArgumentParser()
-
-cli_parser.add_argument('filename')
-cli_parser.add_argument(
-    '-v', 
-    '--verbose', 
-    action='store_true',
-    help='toggle verbose mode')
-cli_parser.add_argument(
-    '-o', 
-    '--out', 
-    default=None,
-    help='set the name of the output file')
-
+import emi #type: ignore
 
 punct_map = {
     0x3a: "(",
@@ -142,12 +126,8 @@ def is_punct(b):
         return None
 
 
-def main():
-    args = cli_parser.parse_args()
-    verbose = args.verbose
-    source_filename = args.filename
+def extractor(source_filename, verbose, out_filename=None):
     source_path = Path(source_filename)
-    out_filename = args.out
     if out_filename is None:
         out_filename = source_filename + "_extracted.txt"
     out_path = Path(out_filename)
@@ -259,7 +239,3 @@ def main():
             pt0 = pt1
             ptidx0 = ptidx1
             ptidx1 += 1
-
-
-if __name__ == "__main__":
-    main()

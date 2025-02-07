@@ -29,6 +29,11 @@ cli_parser.add_argument(
     '--mode',
     choices=['3', '4'],
     help='set the mode (3 or 4)')
+cli_parser.add_argument(
+    '-t', 
+    '--toc',
+    default=None,
+    help='force extraction from the nth TOC entry')
 
 def main():
     args = cli_parser.parse_args()
@@ -37,4 +42,4 @@ def main():
         editor(args.filename, args.verbose, args.new, args.mode, args.copy)
     elif args.operation.lower() == "extract":
         from .extractor import extractor
-        extractor(args.filename, args.verbose, args.mode, args.out)
+        extractor(args.filename, args.verbose, args.mode, args.toc, args.out)

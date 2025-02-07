@@ -19,7 +19,7 @@ class SyntaxTransformer(Transformer):
     _effect_map = {
         "SHK": 0x00,
         "SHK_H": 0x01,
-        "BIG": 0x02,
+        "BIG_1": 0x02,
         "BIG_H": 0x03,
         "BBIG": 0x04,
         "BBIG_H": 0x05,
@@ -42,8 +42,9 @@ class SyntaxTransformer(Transformer):
 
     _selection_map = {
         "OVR_B": 0x90,
-        "OVR_S": 0x80,
+        "OVR_S_1": 0x80,
         "RPL": 0x70,
+        "OVR_S_2": 0x00,
     }
 
     _textbox_pos_map = {
@@ -144,6 +145,10 @@ class SyntaxTransformer(Transformer):
         return l[0] + [0x00]
 
 
+    def end_asterisk(self, l):
+        return l[0] + [0x11]
+
+
     def string_text(self, s):
         return self.concat(s)
 
@@ -164,9 +169,13 @@ class SyntaxTransformer(Transformer):
         return self.concat(f)
 
     
-    def color_start(self, c):
+    def str_color(self, c):
         color = str(c[1]).upper()
         return [0x05, self._color_map[color]]
+
+    
+    def int_color(self, c):
+        return [0x05, c[1]]
 
 
     def color_end(self, c):
@@ -223,6 +232,10 @@ class SyntaxTransformer(Transformer):
     def symbol_start(self, m):
         return m
 
+
+    def longsymbol_start(self, m):
+        return [0x15] + m
+
     
     def duration_start(self, m):
         return [0x16] + m
@@ -272,6 +285,10 @@ class SyntaxTransformer(Transformer):
 
 
     def symbol_macro(self, m):
+        return m[1]
+    
+
+    def longsymbol_macro(self, m):
         return m[1]
 
 

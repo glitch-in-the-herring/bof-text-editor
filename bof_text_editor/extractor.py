@@ -135,7 +135,7 @@ effect_map3 = [
 effect_map4 = [
     "SHK",
     "SHK_H",
-    "BIG",
+    "BIG_1",
     "BIG_H",
     "BBIG",
     "BBIG_H",
@@ -180,7 +180,7 @@ color_map4 = [
     "GREY",
     "RED",
     "CYAN",
-    "Green",
+    "GREEN",
     "PINK",
     "YELLOW",
     "MAGENTA",
@@ -189,8 +189,9 @@ color_map4 = [
 
 selection_map4 = {
     0x90: "OVR_B",
-    0x80: "OVR_S",
+    0x80: "OVR_S_1",
     0x70: "RPL",
+    0x00: "OVR_S_2",
 }
 
 zenny_map4 = {
@@ -242,7 +243,7 @@ def is_punct3(b):
         return None
 
 
-def extractor(source_filename, verbose, mode, out_filename=None):
+def extractor(source_filename, verbose, mode, toc_idx=None, out_filename=None):
     source_path = Path(source_filename)
     if out_filename is None:
         out_filename = source_filename + "_extracted.txt"
@@ -257,7 +258,11 @@ def extractor(source_filename, verbose, mode, out_filename=None):
             raise ValueError(f"Source file {source_filename} is not a valid EMI file!")
         
         toc_entries = emi.browse_toc(toc)
-        text_entry = emi.find_toc(toc_entries, b"\x00\x00\x01\x80")
+        if toc_idx is None:
+            text_entry = emi.find_toc(toc_entries, b"\x00\x00\x01\x80")
+        else:
+            toc_idx = int(toc_idx)
+            text_entry = toc_entries[toc_idx]
 
         if text_entry is None:
             raise ValueError(f"Source file {source_filename} does not ontain a text section!")
@@ -421,7 +426,10 @@ def loop_4(text_entry, out_file, text_section):
                 out_file.write(f"[PARTY {party_map4[text_section[idx + 1]]}]")
                 idx += 2
             elif text_section[idx] == 0x05:
-                out_file.write(f"[color={color_map4[text_section[idx + 1] - 1]}]")
+                if text_section[idx + 1] <= 8:
+                    out_file.write(f"[color={color_map4[text_section[idx + 1] - 1]}]")
+                else:
+                    out_file.write(f"[color=0x{text_section[idx + 1]:02x}]")
                 idx += 2
             elif text_section[idx] == 0x06:
                 out_file.write("[/color]")
@@ -470,6 +478,12 @@ def loop_4(text_entry, out_file, text_section):
                 typing = "FALSE" if text_section[idx] % 2 else "TRUE"
                 out_file.write(f"[TYPE {typing}]")
                 idx += 2
+            elif text_section[idx] == 0x15:
+                out_file.write(f"[SYMBOL2 0x{text_section[idx + 1]:02x}]")
+                idx += 2
+            elif text_section[idx] == 0x11: # not sure what this actually does
+                out_file.write("*\n")
+                idx += 1
 
 
         pt0 = pt1

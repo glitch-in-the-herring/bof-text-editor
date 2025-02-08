@@ -44,11 +44,11 @@ def editor(source_filename, verbose, overwrite, mode, copy):
             target_path = Path(target_filename + "_copy")
         with open(target_path, "r+b") as target_file:
             toc = target_file.read(0x800)
-            if not emi.validate(toc):
+            if not validate(toc):
                 raise ValueError(f"Target file {target_filename} is not a valid EMI file!")
             
-            toc_entries = emi.browse_toc(toc)
-            text_entry = emi.find_toc(toc_entries, b"\x00\x00\x01\x80")
+            toc_entries = browse_toc(toc)
+            text_entry = find_toc(toc_entries, b"\x00\x00\x01\x80")
 
             if text_entry is None:
                 raise ValueError(f"Target file {target_filename} does not ontain a text section!")

@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-import emi #type: ignore
+from .emi_tools import validate, browse_toc, find_toc #type: ignore
 
 punct_map3 = {
     0x3a: "(",
@@ -254,12 +254,12 @@ def extractor(source_filename, verbose, mode, toc_idx=None, out_filename=None):
 
     with open(source_path, "rb") as source_file:
         toc = source_file.read(0x800)
-        if not emi.validate(toc):
+        if not validate(toc):
             raise ValueError(f"Source file {source_filename} is not a valid EMI file!")
         
-        toc_entries = emi.browse_toc(toc)
+        toc_entries = browse_toc(toc)
         if toc_idx is None:
-            text_entry = emi.find_toc(toc_entries, b"\x00\x00\x01\x80")
+            text_entry = find_toc(toc_entries, b"\x00\x00\x01\x80")
         else:
             toc_idx = int(toc_idx)
             text_entry = toc_entries[toc_idx]

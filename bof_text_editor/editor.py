@@ -2,7 +2,7 @@ import shutil
 import time
 from pathlib import Path
 
-import emi #type: ignore
+from .emi_tools import validate, browse_toc, find_toc #type: ignore
 
 def editor(source_filename, verbose, overwrite, mode, copy):
     source_path = Path(source_filename)

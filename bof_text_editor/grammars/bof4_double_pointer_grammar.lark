@@ -7,7 +7,7 @@
 %import common.LETTER -> LETTER
 %import common.ESCAPED_STRING -> ESCAPED_STRING 
 
-start: variables? content
+start: variables? external_pointer_content
 variables: variable*
 variable: "%" CNAME  /\s*=\s*/ variable_value NEWLINE?
 variable_value: variable_int_value -> int_var | ESCAPED_STRING -> string_var
@@ -17,15 +17,20 @@ HEXINT: "0x" HEXDIGIT*
 safe_chars: LETTER | DIGIT  | SPACE  | PUNCT 
 SPACE: " "
 PUNCT: "!" | "\"" | "%" | "%" | "'" | "(" | ")" | "+" | "," | "-" | "." | "/" | ":" | ";" | "?"
+// EXPERIMENTAL
+external_pointer_content: (external_pointer_wrapper)*
+external_pointer_wrapper: /\s*\{\s*/ external_pointer_string /\s*\}\s*/
+external_pointer_string: variables? content
+// EXPERIMENTAL 
 content: (content_string)*
-content_string: "^" string /\$\s*/
+content_string: "^" string /\$\s*/ -> normal_content_string
+    | "^" string endreference_macro /\s*\]\s*/ -> endreference_content_string
 string: string_text*
 string_text: (inline_string|multiline_formatting)*
 ?inline_string.-1: inline_segment 
     | inline_segment NEWLINE  -> end_newline
     | inline_segment "|" NEWLINE -> end_newbox
     | inline_segment "\\" NEWLINE -> end_null
-    | inline_segment "*" NEWLINE -> end_asterisk // not sure what this actually does
 ?inline_segment: inline_formatting
 ?inline_formatting: inline_formatting inline_color inline_formatting_child 
     | inline_formatting inline_effect inline_formatting_child 
@@ -39,6 +44,7 @@ effect_start:  /\[\s*EFFECT\s*\]/i
 effect_end:  /\[\s*\/EFFECT\s*=\s*/i CNAME /\s*\]\s*/
 ?inline_formatting_child: inline_formatting_child "_" inline_formatting_grandchild -> pause
     | inline_formatting_child "@" inline_formatting_grandchild -> pointer
+    | inline_formatting_child "*" inline_formatting_grandchild -> halfspace
     | inline_formatting_child macro_block inline_formatting_grandchild -> inline_macro
     | inline_formatting_grandchild
 macro_block: /\[\s*/ macro_name /\s*\]/
@@ -54,6 +60,7 @@ macro_name: textbox_macro -> textbox_start
     | inventory_macro -> inventory_start
     | reference_macro -> reference_start
     | typing_macro -> typing_start
+    | unknown_macro -> unknown_start
 textbox_macro: /TB\s+/i CNAME /\s+/ CNAME
 party_macro: /PARTY\s+/i CNAME
 selection_macro: /SELECTION\s+/i variable_int_value /\s+/ CNAME /\s+/ variable_int_value
@@ -65,8 +72,10 @@ zenny_macro: /ZENNY\s+/i CNAME
 portrait_macro: /POR\s+/i CNAME /\s+/ variable_int_value /\s+/ CNAME /\s+/  variable_int_value -> indexed_portrait
     | /POR\s+CLEAR/i -> portrait_clear
 inventory_macro: /INV\s+/i variable_int_value /\s+/ CNAME 
-reference_macro: /REF\s+/i variable_int_value /\s+/ variable_int_value
+reference_macro: /REF18\s+/i variable_int_value /\s+/ variable_int_value
 typing_macro: /TYPE\s+/i CNAME
+unknown_macro: /UNK\s+/i variable_int_value
+endreference_macro: /\[\s*REF19\s+/i variable_int_value /\s+/ variable_int_value
 ?inline_formatting_grandchild: safe_text
 safe_text: safe_chars*
 

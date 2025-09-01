@@ -1,0 +1,29 @@
+%import common.INT -> INT
+%import common.DIGIT -> DIGIT
+%import common.HEXDIGIT -> HEXDIGIT
+%import common.CNAME -> CNAME
+%import common.NEWLINE -> NEWLINE
+%import common.LETTER -> LETTER
+
+%import common.ESCAPED_STRING -> ESCAPED_STRING 
+
+start: variables? content
+variables: variable*
+variable: "%" CNAME  /\s*=\s*/ variable_value NEWLINE?
+variable_value: variable_int_value -> int_var | ESCAPED_STRING -> string_var
+variable_int_value: INT -> number | HEXINT -> hex_number
+HEXINT: "0x" HEXDIGIT*
+
+safe_chars: LETTER | DIGIT  | SPACE  | PUNCT 
+SPACE: " "
+PUNCT: "!" | "\"" | "%" | "%" | "'" | "(" | ")" | "+" | "," | "-" | "." | "/" | ":" | ";" | "?"
+
+content: (content_string)*
+content_string: "^" string /\$\s*/
+string: inline_string*
+?inline_string.-1: inline_segment 
+    | inline_segment NEWLINE 
+    | inline_segment "|" NEWLINE
+    | inline_segment "\\" NEWLINE
+inline_segment: safe_text
+safe_text: safe_chars*

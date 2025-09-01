@@ -31,7 +31,7 @@ punct_map4 = [
     33, 
     34, 
     37, 
-    37, 
+    38, 
     39,
     40, 
     41, 
@@ -41,7 +41,8 @@ punct_map4 = [
     46, 
     47, 
     58, 
-    59, 
+    59,
+    61,
     63,
 ]
 
@@ -265,7 +266,7 @@ def extractor(source_filename, verbose, mode, toc_idx=None, out_filename=None):
             text_entry = toc_entries[toc_idx]
 
         if text_entry is None:
-            raise ValueError(f"Source file {source_filename} does not ontain a text section!")
+            raise ValueError(f"Source file {source_filename} does not contain a text section!")
 
         source_file.seek(text_entry.start)
         text_section = source_file.read(text_entry.size)
@@ -311,7 +312,7 @@ def loop_3(text_entry, out_file, text_section):
                 out_file.write(p)
                 idx += 1
             elif text_section[idx] in symbol_map3:
-                out_file.write(f"[SYMBOL 0x{c:2x}]")
+                out_file.write(f"[SYMBOL 0x{text_section[idx]:02x}]")
                 idx += 1
             elif text_section[idx] == 0x0c:
                 pos = text_section[idx + 1] & 0x0f
@@ -337,7 +338,10 @@ def loop_3(text_entry, out_file, text_section):
                 out_file.write(f"[PARTY {party_map3[text_section[idx + 1]]}]")
                 idx += 2
             elif text_section[idx] == 0x05:
-                out_file.write(f"[color={color_map3[text_section[idx + 1] - 1]}]")
+                if text_section[idx + 1] <= len(color_map3):
+                    out_file.write(f"[color={color_map4[text_section[idx + 1] - 1]}]")
+                else:
+                    out_file.write(f"[color=0x{text_section[idx + 1]:02x}]")
                 idx += 2
             elif text_section[idx] == 0x06:
                 out_file.write("[/color]")
@@ -395,12 +399,14 @@ def loop_4(text_entry, out_file, text_section):
             pt1 = to_int(text_section[ptidx1*2:ptidx1*2+2])
         
         while idx < pt1:
-            print(idx, ptidx1)
+            if idx >= text_entry.size:
+                out_file.write("$")
+                break
             if is_safe4(text_section[idx]):
                 out_file.write(chr(text_section[idx]))
                 idx += 1
             elif text_section[idx] in symbol_map4:
-                out_file.write(f"[SYMBOL 0x{c:2x}]")
+                out_file.write(f"[SYMBOL 0x{text_section[idx]:2x}]")
                 idx += 1
             elif text_section[idx] == 0x0c:
                 pos = text_section[idx + 1] & 0x0f
@@ -426,7 +432,7 @@ def loop_4(text_entry, out_file, text_section):
                 out_file.write(f"[PARTY {party_map4[text_section[idx + 1]]}]")
                 idx += 2
             elif text_section[idx] == 0x05:
-                if text_section[idx + 1] <= 8:
+                if text_section[idx + 1] <= len(color_map4):
                     out_file.write(f"[color={color_map4[text_section[idx + 1] - 1]}]")
                 else:
                     out_file.write(f"[color=0x{text_section[idx + 1]:02x}]")
@@ -472,7 +478,11 @@ def loop_4(text_entry, out_file, text_section):
                 out_file.write(f"[INV 0x{text_section[idx +1]:02x} {inventory_map4[text_section[idx + 2]]}]")
                 idx += 3
             elif text_section[idx] == 0x18:
-                out_file.write(f"[REF 0x{inventory_map4[text_section[idx + 1]]:02x} 0x{text_section[idx + 2]:02x}]")
+                out_file.write(f"[REF18 0x{text_section[idx + 1]:02x} 0x{text_section[idx + 2]:02x}]")
+                idx += 3
+            elif text_section[idx] == 0x19:
+                out_file.write(f"[REF19 0x{text_section[idx + 1]:02x} 0x{text_section[idx + 2]:02x}]\n")
+                end = True
                 idx += 3
             elif text_section[idx] == 0x10:
                 typing = "FALSE" if text_section[idx] % 2 else "TRUE"
@@ -481,8 +491,11 @@ def loop_4(text_entry, out_file, text_section):
             elif text_section[idx] == 0x15:
                 out_file.write(f"[SYMBOL2 0x{text_section[idx + 1]:02x}]")
                 idx += 2
-            elif text_section[idx] == 0x11: # not sure what this actually does
-                out_file.write("*\n")
+            elif text_section[idx] == 0x0e: # half-width space?
+                out_file.write("*")
+                idx += 1
+            else: # lump in everything else for now
+                out_file.write(f"[UNK 0x{text_section[idx]:02x}]")
                 idx += 1
 
 

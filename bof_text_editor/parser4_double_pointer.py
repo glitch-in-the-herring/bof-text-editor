@@ -1,7 +1,7 @@
 from lark import Lark
 from lark import Transformer
 
-with open("./bof_text_editor/grammars/bof4_grammar.lark", "r") as f:
+with open("./bof_text_editor/grammars/bof4_double_pointer_grammar.lark", "r") as f:
     parser = Lark(f)
 
 class SyntaxTransformer(Transformer):
@@ -358,9 +358,18 @@ class SyntaxTransformer(Transformer):
         return [e[0]] + self.concat(e[1:])
 
 
+    def external_pointer_wrapper(self, c):
+        return c[1]
+
+    
+    def external_pointer_content(self, c):
+        return self.concat([c])
+
+
     start = list
     variables = dict
     safe_text = list
+    external_pointer_string = list
 
 
 class Processor():
@@ -370,7 +379,7 @@ class Processor():
 
 
     def process(self, transform_output):
-        var, byte_array = transform_output
+        var, byte_arrays = transform_output
         ret_ptr = []
         ret_str = []
         
@@ -383,12 +392,33 @@ class Processor():
             self.target = var["TARGET"]
         
         pos = 0
-        for i in byte_array:
-            if i >= 0:
-                ret_str.append(i)
-                pos += 1
-            else:
-                ret_ptr.extend([k for k in int.to_bytes(self.ptsize + pos, length=2, byteorder="little")])
+        for i in byte_arrays:
+            local_var, local_byte_array = i
+            
+            local_ptr_size = 512
+            if "PTSIZE" in local_var.keys():
+                local_ptr_size = local_var["PTSIZE"] & 0xffff
+
+            local_ptr = []
+            local_str = []
+            local_pos = 0
+            for j in local_byte_array:
+                if j >= 0:
+                    local_str.append(j)
+                    local_pos += 1
+                else:
+                    local_ptr.extend([k for k in int.to_bytes(self.ptsize + local_pos, length=2, byteorder="little")])
+            
+            local_ptr_remainder = -len(local_ptr) % local_ptr_size
+            local_ptr.extend(
+                [k for k in int.to_bytes(len(local_str) + self.ptsize - 1, length=2, byteorder="little")] * (local_ptr_remainder // 2)
+            )
+            
+            inner_section = ret_ptr + ret_str
+            
+            ret_str.extend(inner_section)
+            ret_ptr.extend([k for k in int.to_bytes(local_ptr_size + pos, length=2, byteorder="little")])
+            pos += len(inner_section)
 
         ptr_remainder = -len(ret_ptr) % self.ptsize
         ret_ptr.extend(

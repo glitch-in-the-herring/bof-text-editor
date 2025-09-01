@@ -18,7 +18,7 @@ def editor(source_filename, verbose, overwrite, mode, copy):
 
     if mode == "3":
         from .parser3 import parser, SyntaxTransformer, Processor
-    elif mode =="4":
+    elif mode == "4":
         from .parser4 import parser, SyntaxTransformer, Processor
 
     start_t = time.perf_counter()

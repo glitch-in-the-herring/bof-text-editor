@@ -244,7 +244,7 @@ def is_punct3(b):
         return None
 
 
-def extractor(source_filename, verbose, mode, toc_idx=None, out_filename=None):
+def extractor(source_filename, verbose, mode, toc_idx=None, out_filename=None, double=False):
     source_path = Path(source_filename)
     if out_filename is None:
         out_filename = source_filename + "_extracted.txt"

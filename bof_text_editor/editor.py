@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .emi_tools import validate, browse_toc, find_toc #type: ignore
 
-def editor(source_filename, verbose, overwrite, mode, copy):
+def editor(source_filename, verbose, overwrite, mode, copy, double_pointer):
     source_path = Path(source_filename)
 
     if not source_path.exists():
@@ -16,10 +16,14 @@ def editor(source_filename, verbose, overwrite, mode, copy):
     if verbose:
         print("Parsing...")
 
-    if mode == "3":
-        from .parser3 import parser, SyntaxTransformer, Processor
-    elif mode == "4":
-        from .parser4 import parser, SyntaxTransformer, Processor
+    if double_pointer:
+        if mode == "4":
+            from .parser4_double_pointer import parser, SyntaxTransformer, Processor
+    else:
+        if mode == "3":
+            from .parser3 import parser, SyntaxTransformer, Processor
+        elif mode == "4":
+            from .parser4 import parser, SyntaxTransformer, Processor
 
     start_t = time.perf_counter()
     source_tree = parser.parse(source)

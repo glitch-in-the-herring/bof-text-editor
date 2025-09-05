@@ -407,17 +407,17 @@ class Processor():
                     local_str.append(j)
                     local_pos += 1
                 else:
-                    local_ptr.extend([k for k in int.to_bytes(self.ptsize + local_pos, length=2, byteorder="little")])
+                    local_ptr.extend([k for k in int.to_bytes(local_ptr_size + local_pos, length=2, byteorder="little")])
             
             local_ptr_remainder = -len(local_ptr) % local_ptr_size
             local_ptr.extend(
-                [k for k in int.to_bytes(len(local_str) + self.ptsize - 1, length=2, byteorder="little")] * (local_ptr_remainder // 2)
+                [k for k in int.to_bytes(len(local_str) + local_ptr_size - 1, length=2, byteorder="little")] * (local_ptr_remainder // 2)
             )
             
-            inner_section = ret_ptr + ret_str
+            inner_section = local_ptr + local_str
             
             ret_str.extend(inner_section)
-            ret_ptr.extend([k for k in int.to_bytes(local_ptr_size + pos, length=2, byteorder="little")])
+            ret_ptr.extend([k for k in int.to_bytes(self.ptsize + pos, length=2, byteorder="little")])
             pos += len(inner_section)
 
         ptr_remainder = -len(ret_ptr) % self.ptsize

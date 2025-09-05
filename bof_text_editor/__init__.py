@@ -34,12 +34,17 @@ cli_parser.add_argument(
     '--toc',
     default=None,
     help='force extraction from the nth TOC entry')
+cli_parser.add_argument(
+    '-d', 
+    '--double',
+    action='store_true',
+    help='use the double pointer extraction mode')
 
 def main():
     args = cli_parser.parse_args()
     if args.operation.lower() == "edit":
         from .editor import editor
-        editor(args.filename, args.verbose, args.new, args.mode, args.copy)
+        editor(args.filename, args.verbose, args.new, args.mode, args.copy, args.double)
     elif args.operation.lower() == "extract":
         from .extractor import extractor
-        extractor(args.filename, args.verbose, args.mode, args.toc, args.out)
+        extractor(args.filename, args.verbose, args.mode, args.toc, args.out, args.double)

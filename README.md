@@ -2,11 +2,20 @@
 Extractor and markup intermediary for editing text sections found in Breath of Fire III and IV.
 
 ## Installing
-The current grammar, to put it nicely, sucks, and requires the Earley parser (worst case complexity of O(n³)) to run. To mitigate this, you might want to use a faster implementation of Python, such as PyPy. The instructions below should be ignored while I come up with an installation method for PyPy.
-1. ~~Download [Python](https://www.python.org/downloads/)~~
-2. ~~When installing Python, make sure that "Add Python 3.xx" is ticked~~
-3. ~~Open a command prompt window~~
+The current grammar, to put it nicely, sucks, and requires the Earley parser (worst case complexity of O(n³)) to run. To mitigate this, you might want to use a faster implementation of Python, such as PyPy.
+
+### Using CPython
+1. Download the latest [Python](https://www.python.org/downloads/) version
+2. When installing Python, make sure that "Add Python 3.xx" is ticked
+3. Open a command prompt window
 4. Type `python -m pip install git+https://github.com/glitch-in-the-herring/bof-text-editor`
+
+### Using PyPy
+1. Download the latest [PyPy](https://pypy.org/download.html) version
+2. Extract the contents of the .zip
+3. Copy the address of this directory
+4. Open a command prompt window
+5. Type `[dir]/pypy.exe -m pip install git+https://github.com/glitch-in-the-herring/bof-text-editor` replacing [dir] with the path to the the PyPy folder
 
 ## Usage
 ### Extractor
